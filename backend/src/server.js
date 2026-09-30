@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { PORT } from './config/env.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app = express();
 
@@ -14,6 +15,8 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     res.json({ status: 'OK' });
 });
+
+app.use('/auth', authRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
