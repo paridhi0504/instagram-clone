@@ -11,7 +11,7 @@ CREATE TABLE users (
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    image_url TEXT NOT NULL,
+    media_url TEXT NOT NULL,
     caption TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

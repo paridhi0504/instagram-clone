@@ -4,6 +4,8 @@ import { pool } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
+import postRoutes from './routes/post.routes.js';
+import { UPLOADS_DIR } from './config/paths.js';
 
 const app = express();
 
@@ -22,6 +24,9 @@ app.get('/health', async (req, res) => {
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
-app.use(errorHandler); // must be LAST
+app.use('/uploads', express.static(UPLOADS_DIR));
+app.use('/posts', postRoutes);
+
+app.use(errorHandler); // still LAST
 
 export default app;

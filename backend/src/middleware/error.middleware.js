@@ -1,11 +1,16 @@
 export function errorHandler(err, req, res, next) {
-  const status = err.status || 500;
+  let status = err.status || 500;
+  let message = err.message;
 
-  if (status === 500) {
-    console.error(err); // log the real error for yourself
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    status = 400;
+    message = 'Image must be 5 MB or smaller';
   }
 
-  res.status(status).json({
-    error: status === 500 ? 'Internal server error' : err.message,
-  });
+  if (status === 500) {
+    console.error(err);
+    message = 'Internal server error';
+  }
+
+  res.status(status).json({ error: message });
 }
