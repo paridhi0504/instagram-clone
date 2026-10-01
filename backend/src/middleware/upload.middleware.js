@@ -3,6 +3,9 @@ import path from 'path';
 import crypto from 'crypto';
 import { UPLOADS_DIR } from '../config/paths.js';
 import { HttpError } from '../utils/httpError.js';
+import fs from 'fs';
+// ...
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 

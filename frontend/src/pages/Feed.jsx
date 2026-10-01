@@ -14,7 +14,11 @@ export default function Feed() {
 
     try {
       const data = await getFeed(cursor);
-      setPosts((prev) => (cursor ? [...prev, ...data.posts] : data.posts));
+
+      setPosts((prev) =>
+        cursor ? [...prev, ...data.posts] : data.posts
+      );
+
       setNextCursor(data.nextCursor);
     } catch (err) {
       setError(err.message);
@@ -57,7 +61,15 @@ export default function Feed() {
       {error && <p className="error">{error}</p>}
 
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard
+          key={post.id}
+          post={post}
+          onDelete={(id) =>
+            setPosts((prev) =>
+              prev.filter((p) => p.id !== id)
+            )
+          }
+        />
       ))}
 
       {!loading && posts.length === 0 && !error && (
@@ -69,7 +81,10 @@ export default function Feed() {
       {loading && <p className="center">Loading...</p>}
 
       {nextCursor && !loading && (
-        <button className="load-more" onClick={() => load(nextCursor)}>
+        <button
+          className="load-more"
+          onClick={() => load(nextCursor)}
+        >
           Load more
         </button>
       )}

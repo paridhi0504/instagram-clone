@@ -222,3 +222,38 @@ The frontend needs to know whether the current viewer already liked each post, t
 6. Safe text
 
 Users can write <script>alert(1)</script> as a comment. React escapes text rendered with {comment.text}, so it shows as plain text and doesn't run. That protection is automatic unless you use dangerouslySetInnerHTML. Never use that on user content.
+
+
+### Phase 7: Polish, Security and Tests
+
+Goal: turn "it works on my machine" into "it's safe, tested and documented." No new features this phase. You're making the existing ones trustworthy, and this is much of what separates a tutorial project from one you can show in an interview.
+
+Part A: The concepts
+1. Validate at the edge
+
+Right now each controller checks its own input by hand, and some routes check nothing. We'll define the shape of valid input once per endpoint with Zod. A middleware runs it before the controller, and bad input never goes deeper. It also sanitizes, trimming and lowercasing values, and strips unknown fields.
+
+2. Rate limiting
+
+Without it, someone can try 10,000 passwords per minute against /auth/login. A rate limiter counts requests per IP and answers 429 Too Many Requests past a limit. Our counter lives in the server's memory, so it resets on restart and isn't shared between servers. Remember that, because it comes back in Phase 8 when we run several servers and need Redis.
+
+3. Security headers (Helmet)
+
+Helmet sets a bundle of HTTP response headers that tell browsers to behave more safely (no MIME sniffing, no framing, and so on). It's one line for a lot of protection.
+
+A gotcha you'll hit: Helmet's default blocks other origins from loading your images. Your frontend (:5173) loads images from the backend (:4000), so we must relax that one header.
+
+4. Lock down CORS
+
+cors() with no options lets any website call your API from a browser. We'll allow only your frontend's origin.
+
+5. Automated tests
+
+So far you've tested with Postman by hand. That doesn't scale, because every change risks breaking something old, and you'd never re-test everything. Automated tests are code that checks your code, and you run them in seconds.
+
+Vitest is the test runner.
+Supertest calls your Express app directly without starting a server. This is why we separated app.js from server.js back in Phase 1.
+Tests use a separate test database. A test suite wipes tables, and you never want it pointed at your real data.
+6. 404s and a README
+
+The API returns JSON for unknown routes, and the frontend shows a "page not found" screen. A README is the first thing anyone (including a recruiter) reads.

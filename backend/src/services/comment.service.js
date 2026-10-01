@@ -69,20 +69,28 @@ export async function getCommentOwner(commentId) {
 }
 
 export async function deleteComment({ commentId, userId }) {
-    const comment = await pool.query(
-        `SELECT user_id
-         FROM comments
-         WHERE id = $1`,
+    const result = await pool.query(
+        `SELECT
+            c.user_id AS comment_owner_id,
+            p.user_id AS post_owner_id
+         FROM comments c
+         JOIN posts p ON p.id = c.post_id
+         WHERE c.id = $1`,
         [commentId]
     );
 
-    if (comment.rowCount === 0) {
+    if (result.rowCount === 0) {
         const error = new Error('Comment not found');
         error.status = 404;
         throw error;
     }
 
-    if (comment.rows[0].user_id !== userId) {
+    const comment = result.rows[0];
+
+    const isCommentOwner = comment.comment_owner_id === userId;
+    const isPostOwner = comment.post_owner_id === userId;
+
+    if (!isCommentOwner && !isPostOwner) {
         const error = new Error('You are not allowed to delete this comment');
         error.status = 403;
         throw error;

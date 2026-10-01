@@ -6,6 +6,7 @@ import Register from './pages/Register.jsx';
 import Feed from './pages/Feed.jsx';
 import Profile from './pages/Profile.jsx';
 import NewPost from './pages/NewPost.jsx';
+import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
         <Route path="/new" element={<ProtectedRoute><NewPost /></ProtectedRoute>} />
         <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );

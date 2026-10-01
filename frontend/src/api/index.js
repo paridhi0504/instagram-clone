@@ -26,3 +26,5 @@ export const addComment = (id, text) =>
   request(`/posts/${id}/comments`, { method: 'POST', body: { text } });
 export const deleteComment = (id) =>
   request(`/comments/${id}`, { method: 'DELETE' });
+
+export const deletePost = (id) => request(`/posts/${id}`, { method: 'DELETE' });

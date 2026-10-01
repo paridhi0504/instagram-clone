@@ -20,6 +20,12 @@ export async function request(path, { method = 'GET', body, isForm = false } = {
     body: body ? (isForm ? body : JSON.stringify(body)) : undefined,
   });
 
+  if (res.status === 401 && token && !path.startsWith('/auth/')) {
+  localStorage.removeItem('token');
+  window.location.href = '/login';
+  throw new Error('Session expired, please log in again');
+}
+
   if (res.status === 204) return null;
 
   const data = await res.json().catch(() => null);
