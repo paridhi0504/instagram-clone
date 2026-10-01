@@ -38,3 +38,6 @@ CREATE TABLE comments (
     comment_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_followers_follower ON followers(follower_id);
+CREATE INDEX IF NOT EXISTS idx_posts_user_id_desc ON posts(user_id, id DESC);

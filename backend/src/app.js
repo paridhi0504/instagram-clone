@@ -6,6 +6,8 @@ import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import postRoutes from './routes/post.routes.js';
 import { UPLOADS_DIR } from './config/paths.js';
+import followRoutes from './routes/follow.routes.js';
+import feedRoutes from './routes/feed.routes.js';
 
 const app = express();
 
@@ -23,9 +25,10 @@ app.get('/health', async (req, res) => {
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
-
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/posts', postRoutes);
+app.use('/feeds', feedRoutes);
+app.use('/follows', followRoutes);
 
 app.use(errorHandler); // still LAST
 

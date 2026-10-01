@@ -96,3 +96,49 @@ In Phase 2 you learned authentication (who are you?). Now you need authorization
 
 A post stores only user_id. To show the username with it, we JOIN the posts and users tables in one query.
 
+
+### Phase 4: Follow, Unfollow and the Home Feed
+Goal: users can follow and unfollow each other, view profiles, and get a paginated home feed of posts from the people they follow.
+
+Part A: The concepts
+1. A many-to-many relationship on one table
+
+A user can follow many users, and a user can be followed by many users. Both sides are the same users table, so we need a join table, your followers table:
+
+followers (user_id, follower_id)
+(2, 1)  → user 1 follows user 2
+(3, 1)  → user 1 follows user 3
+(1, 2)  → user 2 follows user 1
+
+Be careful with the direction. user_id is the person being followed and follower_id is the person doing the following. Most beginners mix these up at least once, so keep this table in your head.
+
+"Who do I follow?" → WHERE follower_id = me
+"Who follows me?" → WHERE user_id = me
+2. Idempotency
+
+An operation is idempotent if doing it twice has the same result as doing it once. If a user double-clicks Follow, we don't want an error or a duplicate row. The composite primary key (user_id, follower_id) already blocks duplicates, and INSERT ... ON CONFLICT DO NOTHING makes the second attempt a quiet no-op.
+
+3. Indexes
+
+An index is like the index at the back of a book. Without one, Postgres reads every row to find matches (a sequential scan). With one, it jumps straight to them.
+
+Your primary key (user_id, follower_id) already gives you a fast lookup by user_id. But the feed asks "who does I follow?", which searches by follower_id, so we add an index for it. We also index posts(user_id, id DESC) so "latest posts by these users" is fast. Indexes make reads faster but writes slightly slower, so you add them where you query.
+
+4. Pagination
+
+You never return all posts at once. There are two approaches:
+
+	Offset (LIMIT 10 OFFSET 20)	Cursor (WHERE id < last_seen_id)
+Simplicity	Very easy	A little more work
+Speed on deep pages	Slow, since it skips 20 rows to start	Fast, since it jumps via the index
+New posts arrive while scrolling	Duplicates or skipped items	Stable
+
+Feeds use cursor pagination. The client says "give me 10 posts older than post #57". The response includes a nextCursor to use for the next request. This is how infinite scroll works.
+
+Trick: fetch limit + 1 rows. If you get the extra one, you know there's another page, and you drop it before responding.
+
+5. The feed query is "fan-out on read"
+
+This is the pull model from section 6 of your notes. At request time we look up everyone I follow and fetch their latest posts. It's simple and always fresh. At Instagram scale it gets expensive, which is why the push model and Redis exist later. You are building the "before" picture that makes those optimizations make sense.
+
+
