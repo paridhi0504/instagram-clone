@@ -39,7 +39,7 @@ export const getPost = async (req, res, next) => {
             });
         }
 
-        const post = await getPostById(postId);
+        const post = await getPostById(postId, req.user.id);
 
         if (!post) {
             return res.status(404).json({

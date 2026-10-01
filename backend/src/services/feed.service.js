@@ -12,7 +12,13 @@ export async function getFeed({ userId, limit, cursor }) {
         u.username,
         u.profile_picture,
         (SELECT COUNT(*) FROM likes WHERE post_id = p.id)::int AS like_count,
-        (SELECT COUNT(*) FROM comments WHERE post_id = p.id)::int AS comment_count
+(SELECT COUNT(*) FROM comments WHERE post_id = p.id)::int AS comment_count,
+EXISTS (
+  SELECT 1
+  FROM likes
+  WHERE post_id = p.id
+    AND user_id = $1
+) AS liked_by_me
      FROM posts p
      JOIN users u ON u.id = p.user_id
      WHERE (

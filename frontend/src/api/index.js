@@ -16,3 +16,13 @@ export const unfollowUser = (id) => request(`/follow/${id}`, { method: 'DELETE' 
 
 export const createPost = (formData) =>
   request('/posts', { method: 'POST', body: formData, isForm: true });
+
+export const likePost = (id) => request(`/posts/${id}/like`, { method: 'POST' });
+export const unlikePost = (id) => request(`/posts/${id}/like`, { method: 'DELETE' });
+
+export const getComments = (id, cursor) =>
+  request(`/posts/${id}/comments?limit=5${cursor ? `&cursor=${cursor}` : ''}`);
+export const addComment = (id, text) =>
+  request(`/posts/${id}/comments`, { method: 'POST', body: { text } });
+export const deleteComment = (id) =>
+  request(`/comments/${id}`, { method: 'DELETE' });

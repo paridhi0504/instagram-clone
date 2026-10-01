@@ -11,7 +11,7 @@ export const createPost = async ({ userId, mediaUrl, caption }) => {
     return result.rows[0];
 };
 
-export const getPostById = async (postId) => {
+export const getPostById = async (postId, viewerId) => {
     const result = await pool.query(
         `SELECT
             posts.id,
@@ -21,11 +21,17 @@ export const getPostById = async (postId) => {
             posts.caption,
             posts.created_at,
             (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
-            (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count
+            (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
+            EXISTS (
+                SELECT 1
+                FROM likes
+                WHERE likes.post_id = posts.id
+                  AND likes.user_id = $2
+            ) AS liked_by_me
          FROM posts
          JOIN users ON posts.user_id = users.id
          WHERE posts.id = $1`,
-        [postId]
+        [postId, viewerId]
     );
 
     return result.rows[0];

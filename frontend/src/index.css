@@ -26,3 +26,10 @@ input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-rad
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
 .grid img { width: 100%; aspect-ratio: 1; object-fit: cover; }
 .load-more { display: block; margin: 16px auto; }
+
+.actions { display: flex; gap: 12px; margin-bottom: 8px; }
+.icon-btn { background: none; color: #222; padding: 4px 6px; font-size: 1rem; }
+.link-btn { background: none; color: #888; padding: 0 6px; font-size: 0.8rem; font-weight: 400; }
+.comments { margin-top: 8px; }
+.comment { margin: 6px 0; font-size: 0.9rem; word-break: break-word; }
+.comment-form { display: flex; gap: 8px; margin-bottom: 8px; }

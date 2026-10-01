@@ -41,3 +41,7 @@ CREATE TABLE comments (
 
 CREATE INDEX IF NOT EXISTS idx_followers_follower ON followers(follower_id);
 CREATE INDEX IF NOT EXISTS idx_posts_user_id_desc ON posts(user_id, id DESC);
+
+
+CREATE INDEX IF NOT EXISTS idx_likes_post ON likes(post_id);
+CREATE INDEX IF NOT EXISTS idx_comments_post_id_desc ON comments(post_id, id DESC);

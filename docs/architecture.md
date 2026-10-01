@@ -178,3 +178,47 @@ Storing JWTs in localStorage is common for learning projects, but a script injec
 
 The backend already refuses unauthenticated requests. The frontend also hides pages from logged-out users, but only for user experience. Real security is always on the backend.
 
+
+### Phase 6: Likes and Comments
+
+Goal: users can like and unlike posts (with an instant-feeling heart button) and read, add and delete comments.
+
+Your likes and comments tables already exist from Phase 1, so this phase adds endpoints and UI.
+
+Part A: The concepts
+1. Like is a toggle built from two idempotent operations
+
+You've already done this with follows. A like is a row in a join table, with (user_id, post_id) as the primary key.
+
+POST /posts/:id/like inserts a row with ON CONFLICT DO NOTHING. Liking twice is harmless.
+DELETE /posts/:id/like deletes the row. Unliking twice is harmless.
+
+We use two explicit endpoints instead of one "toggle" endpoint. If a request is retried, a toggle would flip the state twice, but explicit operations always end in the state you asked for.
+
+2. Comments are a one-to-many relationship
+
+One post has many comments, and each comment belongs to one post and one user. Unlike likes, comments have their own id, because you need to refer to one comment (to delete it).
+
+Who may delete a comment? The comment's author, and also the owner of the post. Instagram works the same way. This is an authorization rule, so it lives in the service.
+
+3. Optimistic UI
+
+When you tap the heart, waiting 200 ms for the server before the heart turns red feels laggy. So we:
+
+Update the UI immediately, assuming success.
+Send the request.
+If it fails, roll the UI back.
+
+This is how real apps feel instant. You'll write it by hand.
+
+4. liked_by_me
+
+The frontend needs to know whether the current viewer already liked each post, to draw a filled or empty heart. So the feed query returns that as a boolean using EXISTS, just like is_following on profiles.
+
+5. A scaling note that ties back to your notes
+
+(SELECT COUNT(*) FROM likes WHERE post_id = p.id) counts rows on every read. That's fine now. With millions of likes per post it becomes expensive, and real systems keep a stored counter or cache it in Redis. You'll meet this in the scale-up phase.
+
+6. Safe text
+
+Users can write <script>alert(1)</script> as a comment. React escapes text rendered with {comment.text}, so it shows as plain text and doesn't run. That protection is automatic unless you use dangerouslySetInnerHTML. Never use that on user content.
