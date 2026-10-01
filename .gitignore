@@ -1,4 +1,9 @@
 node_modules/
 .env
-uploads/
-.DS_Store
+.postman/
+
+frontend/node_modules/
+frontend/.env
+backend/node_modules/
+backend/.env
+backend/uploads/

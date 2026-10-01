@@ -142,3 +142,39 @@ Trick: fetch limit + 1 rows. If you get the extra one, you know there's another 
 This is the pull model from section 6 of your notes. At request time we look up everyone I follow and fetch their latest posts. It's simple and always fresh. At Instagram scale it gets expensive, which is why the push model and Redis exist later. You are building the "before" picture that makes those optimizations make sense.
 
 
+### Phase 5: The React Frontend
+Goal: a browser app where you can register, log in, see your feed, upload a photo, view profiles, and follow or unfollow people. It talks to the backend you've already built and tested.
+
+Likes and comments come in Phase 6. For now, post cards will show the counts only.
+
+Part A: The concepts
+1. What React is
+
+React builds the UI out of components, which are functions that return what should appear on screen.
+
+jsx
+function Greeting({ name }) {
+  return <h1>Hello, {name}</h1>;
+}
+JSX is the HTML-looking syntax inside JavaScript. { } lets you drop in any JS value.
+Props are the inputs to a component (name above), like function arguments.
+State (useState) is data a component remembers. When state changes, React re-renders the component. You never manually edit the page. You change state, and the UI follows. This is the biggest mindset shift from plain JavaScript.
+Effects (useEffect) run code after rendering, such as fetching data when a page opens.
+2. The frontend is a separate program
+
+It runs in the browser at localhost:5173 (Vite's port). Your backend runs at localhost:4000. Because they're on different origins, the browser enforces CORS. You already added cors() in Phase 1, which is why this will work.
+
+3. Single Page App and routing
+
+The browser loads one HTML page once. React Router swaps components when the URL changes (/login, /profile/3) without reloading the page. The backend returns the data, and the frontend decides what to show.
+
+4. Where does the token live?
+
+After login you get a JWT, and the frontend must remember it across page refreshes. We store it in localStorage and keep the logged-in user in a React Context, which is shared state any component can read.
+
+Storing JWTs in localStorage is common for learning projects, but a script injected into the page (XSS) could read it. Production apps often use httpOnly cookies instead. For this project, localStorage is fine and I want you to know the trade-off.
+
+5. Protected routes
+
+The backend already refuses unauthenticated requests. The frontend also hides pages from logged-out users, but only for user experience. Real security is always on the backend.
+
