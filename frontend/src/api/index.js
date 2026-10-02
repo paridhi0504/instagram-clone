@@ -28,3 +28,13 @@ export const deleteComment = (id) =>
   request(`/comments/${id}`, { method: 'DELETE' });
 
 export const deletePost = (id) => request(`/posts/${id}`, { method: 'DELETE' });
+
+export const searchUsers = (q) =>
+    request(`/search/users?q=${encodeURIComponent(q)}`);
+
+export const getHashtagPosts = (tag, cursor) =>
+    request(
+        `/search/hashtags/${encodeURIComponent(tag)}?limit=5${
+            cursor ? `&cursor=${cursor}` : ''
+        }`
+    );

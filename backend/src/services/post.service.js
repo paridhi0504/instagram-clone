@@ -1,19 +1,46 @@
 import { pool } from '../config/db.js';
 import { invalidateFeed } from '../utils/cache.js';
 import { deleteImage } from './storage.service.js';
+import { extractHashtags } from '../utils/hashtags.js';
 
-export const createPost = async ({ userId, mediaUrl, caption }) => {
-    const result = await pool.query(
-        `INSERT INTO posts (user_id, media_url, caption)
-         VALUES ($1, $2, $3)
-         RETURNING *`,
-        [userId, mediaUrl, caption]
-    );
+export async function createPost({ userId, mediaUrl, caption }) {
+    const client = await pool.connect();
 
-    await invalidateFeed(userId);
+    try {
+        await client.query('BEGIN');
 
-    return result.rows[0];
-};
+        const result = await client.query(
+            `INSERT INTO posts (user_id, media_url, caption)
+             VALUES ($1, $2, $3)
+             RETURNING id, user_id, media_url, caption, created_at`,
+            [userId, mediaUrl, caption || null]
+        );
+
+        const post = result.rows[0];
+
+        const tags = extractHashtags(caption);
+
+        if (tags.length) {
+            await client.query(
+                `INSERT INTO post_hashtags (post_id, tag)
+                 SELECT $1, UNNEST($2::text[])
+                 ON CONFLICT DO NOTHING`,
+                [post.id, tags]
+            );
+        }
+
+        await client.query('COMMIT');
+
+        await invalidateFeed(userId);
+
+        return post;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+}
 
 export const getPostById = async (postId, viewerId) => {
     const result = await pool.query(

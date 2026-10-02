@@ -33,3 +33,13 @@ input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-rad
 .comments { margin-top: 8px; }
 .comment { margin: 6px 0; font-size: 0.9rem; word-break: break-word; }
 .comment-form { display: flex; gap: 8px; margin-bottom: 8px; }
+
+.user-row {
+  display: block;
+  padding: 10px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+.hashtag {
+  color: #00376b;
+}

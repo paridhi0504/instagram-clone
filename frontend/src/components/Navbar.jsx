@@ -12,12 +12,18 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="brand">InstaClone</Link>
+      <Link to="/" className="brand">
+        InstaClone
+      </Link>
+
       {user && (
         <div className="nav-links">
           <Link to="/">Feed</Link>
+          <Link to="/search">Search</Link>
           <Link to="/new">New Post</Link>
-          <Link to={`/profile/${user.id}`}>{user.username}</Link>
+          <Link to={`/profile/${user.id}`}>
+            {user.username}
+          </Link>
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}

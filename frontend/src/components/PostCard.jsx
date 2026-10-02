@@ -4,6 +4,7 @@ import { mediaUrl } from '../api/client.js';
 import { likePost, unlikePost, deletePost } from '../api/index.js';
 import { useAuth } from '../context/useAuth.js';
 import CommentSection from './CommentSection.jsx';
+import Caption from './Caption.jsx';
 
 export default function PostCard({ post, onDelete }) {
   const { user } = useAuth();
@@ -24,7 +25,6 @@ export default function PostCard({ post, onDelete }) {
 
     const wasLiked = liked;
 
-    // Optimistic update
     setLiked(!wasLiked);
     setLikeCount((c) => c + (wasLiked ? -1 : 1));
 
@@ -35,7 +35,6 @@ export default function PostCard({ post, onDelete }) {
         await likePost(post.id);
       }
     } catch {
-      // Roll back if request fails
       setLiked(wasLiked);
       setLikeCount((c) => c + (wasLiked ? 1 : -1));
     } finally {
@@ -101,9 +100,10 @@ export default function PostCard({ post, onDelete }) {
         </div>
 
         {post.caption && (
-          <p>
-            <strong>{post.username}</strong> {post.caption}
-          </p>
+          <Caption
+            username={post.username}
+            text={post.caption}
+          />
         )}
 
         {showComments && (

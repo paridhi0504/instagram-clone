@@ -14,6 +14,7 @@ import postRoutes from './routes/post.routes.js';
 import followRoutes from './routes/follow.routes.js';
 import feedRoutes from './routes/feed.routes.js';
 import commentRoutes from './routes/comment.routes.js';
+import searchRoutes from './routes/search.routes.js';
 
 import { apiLimiter, authLimiter } from './middleware/rateLimit.middleware.js';
 import { notFound } from './middleware/notFound.middleware.js';
@@ -74,6 +75,7 @@ app.use('/posts', postRoutes);
 app.use('/follow', followRoutes);
 app.use('/feed', feedRoutes);
 app.use('/comments', commentRoutes);
+app.use('/search', searchRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
