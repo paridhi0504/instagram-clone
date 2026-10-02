@@ -1,4 +1,7 @@
 import { redis } from './config/redis.js';
+import app from './app.js';
+import { PORT } from './config/env.js';
+import { ensureBucket } from './config/s3.js';
 
 const waitForRedis = async () => {
     if (!redis) {
@@ -19,10 +22,28 @@ const waitForRedis = async () => {
     }
 };
 
-await waitForRedis();
+const waitForStorage = async () => {
+    for (let attempt = 1; attempt <= 10; attempt++) {
+        try {
+            await ensureBucket();
+            console.log('Object storage ready');
+            return;
+        } catch (err) {
+            if (attempt === 10) {
+                throw err;
+            }
 
-const { default: app } = await import('./app.js');
-const { PORT } = await import('./config/env.js');
+            console.log(
+                `Waiting for object storage (${attempt}/10): ${err.message}`
+            );
+
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+    }
+};
+
+await waitForRedis();
+await waitForStorage();
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

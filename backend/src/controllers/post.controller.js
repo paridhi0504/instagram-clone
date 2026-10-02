@@ -5,26 +5,38 @@ import {
     deletePost as deletePostService
 } from '../services/post.service.js';
 
+import { saveImage, deleteImage } from '../services/storage.service.js';
+import { HttpError } from '../utils/httpError.js';
+
 export const createPost = async (req, res, next) => {
+    let mediaUrl;
+
     try {
         if (!req.file) {
-            return res.status(400).json({
-                error: 'Image is required'
-            });
+            throw new HttpError(
+                400,
+                'An image file is required (field name: image)'
+            );
         }
 
-        const userId = req.user.id;
-        const mediaUrl = `/uploads/${req.file.filename}`;
-        const caption = req.body.caption || null;
+        // 1. Upload image to object storage
+        mediaUrl = await saveImage(req.file);
 
+        // 2. Save post information in PostgreSQL
         const post = await createPostService({
-            userId,
+            userId: req.user.id,
             mediaUrl,
-            caption
+            caption: req.body.caption
         });
 
         res.status(201).json(post);
     } catch (error) {
+        // If database insert fails after image upload,
+        // remove the uploaded image so it does not become an orphan.
+        if (mediaUrl) {
+            await deleteImage(mediaUrl);
+        }
+
         next(error);
     }
 };

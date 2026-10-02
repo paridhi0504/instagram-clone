@@ -1,7 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export function mediaUrl(path) {
-  return path ? `${API_URL}${path}` : null;
+  if (!path) return null;
+  return path.startsWith('http') ? path : `${API_URL}${path}`;
 }
 
 export function getToken() {

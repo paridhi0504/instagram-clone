@@ -343,3 +343,62 @@ If a copy dies, Nginx notices the failed connection, retries on another copy, an
 The client's IP: your backend now sees Nginx's IP for every request. Your rate limiter would treat all users as one person and lock everyone out together. Nginx passes the real IP in an X-Forwarded-For header, and Express must be told to trust it (trust proxy).
 Upload size: Nginx rejects request bodies over 1 MB by default (413), so your 5 MB image uploads would fail. We raise the limit.
 Nginx is now a single point of failure. Real systems run several load balancers too. We'll just note that.
+
+
+### Phase 8C: Object Storage and Search
+This is the last scale-up phase. It has two parts:
+
+Part	What you build	Box in your notes
+1. Object storage	Images move out of the shared folder into an S3-compatible store	Media Storage (S3/GCS)
+2. Search	User search and hashtag search, with proper indexes	Search Service / Search Index
+
+Goal: the backend containers end up with no local disk state at all, and you can search users and #hashtags.
+
+A correction to my earlier plan
+
+I told you we'd use MinIO. I checked its current status first, and it has changed since I learned about it:
+
+MinIO's official repository was archived on April 25, 2026, with no further security patches or Docker image updates from upstream. 
+github
+The community edition is now distributed as source code only. 
+github
+The minio/minio:latest image no longer resolves on Docker Hub, and pgsty/minio is a maintained community fork that boots fine. 
+github
+
+So we'll use the pgsty/minio community fork for local development. This is a useful lesson in itself: dependencies can disappear. Our code talks to the standard S3 API, not to MinIO specifically, so switching to another S3-compatible store (Garage, SeaweedFS, or real AWS S3) means changing environment variables, not code. That portability is the reason to code against a standard.
+
+Part 1: Object storage
+Concepts
+
+1. Three kinds of storage
+
+Type	Example	Good for
+Block	A disk attached to a server	Databases
+File	A shared folder (what we have now)	Documents on one machine or network
+Object	S3, GCS	Huge numbers of files, accessed over HTTP
+
+2. Object storage vocabulary
+
+Bucket: a top-level container (like instagram-media).
+Key: the object's name (3f2a-...jpg). The namespace is flat, and slashes in keys are just characters.
+Object: the bytes plus metadata such as Content-Type.
+You use it through an HTTP API (PUT, GET, DELETE), not a mounted folder.
+
+3. Why the shared folder had to go
+Your 3 backend copies shared ./backend/uploads only because they all run on your one Mac. On separate machines, a file saved by server 1 doesn't exist on server 2. Object storage is reachable from every server, so it works anywhere.
+
+4. Two different URLs for the same storage
+
+Internal URL http://minio:9000: how the backend container reaches it (Docker's network, as in 8A).
+Public URL http://localhost:9000/instagram-media: how the browser reaches it.
+
+The backend uploads through the internal address but saves the public URL in the database. Mixing these up is the classic bug in this phase.
+
+5. Images stop going through your API
+Before, every image request went browser → Nginx → backend → disk. Now the browser fetches images directly from storage, so your app servers only handle JSON. This is the step before a CDN (your notes' "Media files served via CDN"): later you'd put a CDN in front of the bucket and nothing else changes.
+
+6. Public-read, private-write
+The bucket allows anonymous GET (anyone with the link can view photos, like public Instagram posts) but never anonymous PUT or DELETE. Only the backend, holding credentials, can write. (Private content would use presigned URLs instead. See the exercises.)
+
+7. Memory storage for uploads
+Multer will now hold the upload in memory (max 5 MB) and hand the bytes to our storage code, instead of writing to disk first.

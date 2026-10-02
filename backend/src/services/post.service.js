@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import { invalidateFeed } from '../utils/cache.js';
+import { deleteImage } from './storage.service.js';
 
 export const createPost = async ({ userId, mediaUrl, caption }) => {
     const result = await pool.query(
@@ -53,15 +54,27 @@ export const getPostOwner = async (postId) => {
 
 export const deletePost = async (postId, userId) => {
     const result = await pool.query(
-        `DELETE FROM posts
-         WHERE id = $1 AND user_id = $2
-         RETURNING *`,
+        `SELECT *
+         FROM posts
+         WHERE id = $1 AND user_id = $2`,
         [postId, userId]
     );
 
-    if (result.rowCount > 0) {
-        await invalidateFeed(userId);
+    const post = result.rows[0];
+
+    if (!post) {
+        return undefined;
     }
 
-    return result.rows[0];
+    await pool.query(
+        `DELETE FROM posts
+         WHERE id = $1 AND user_id = $2`,
+        [postId, userId]
+    );
+
+    await invalidateFeed(userId);
+
+    await deleteImage(post.media_url);
+
+    return post;
 };

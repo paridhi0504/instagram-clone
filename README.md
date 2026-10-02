@@ -1,11 +1,3 @@
-You’re right. The previous version reads more like technical documentation dumped into a README than a README someone would enjoy reading.
-
-A good README should let a first-time visitor understand:
-
-What is this? → What can it do? → How does it work? → How do I run it? → How is it secured/tested?
-
-Here is a cleaner version with fewer, meaningful sections. Copy the entire block below into README.md.
-
 # InstaClone
 InstaClone is a full-stack social media application inspired by Instagram. It allows users to create accounts, upload photo posts, follow other users, like posts, and interact through comments.
 This project was built to practice full-stack web development and understand how a real-world application connects a React frontend with an Express backend and PostgreSQL database.
