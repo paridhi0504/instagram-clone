@@ -4,6 +4,7 @@ import { createPost } from '../api/index.js';
 
 export default function NewPost() {
   const navigate = useNavigate();
+
   const [file, setFile] = useState(null);
   const [caption, setCaption] = useState('');
   const [error, setError] = useState('');
@@ -15,15 +16,23 @@ export default function NewPost() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!file) return setError('Please choose an image');
+
+    if (!file) {
+      setError('Please choose an image');
+      return;
+    }
 
     setBusy(true);
     setError('');
+
     try {
       const formData = new FormData();
-      formData.append('image', file);      // must match upload.single('image')
+
+      formData.append('image', file);
       formData.append('caption', caption);
+
       await createPost(formData);
+
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -33,21 +42,52 @@ export default function NewPost() {
   }
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <h2>New post</h2>
-      {error && <p className="error">{error}</p>}
+    <main className="container new-post-page">
+      <form className="post-form" onSubmit={handleSubmit}>
+        <h2>Create new post</h2>
 
-      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} />
+        {error && (
+          <p className="error">{error}</p>
+        )}
 
-      {file && (
-        <img className="preview" src={URL.createObjectURL(file)} alt="preview" />
-      )}
+        <label className="file-label">
+          Choose an image
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFile}
+          />
+        </label>
 
-      <textarea
-        placeholder="Write a caption..." value={caption} maxLength={2200}
-        onChange={(e) => setCaption(e.target.value)}
-      />
-      <button disabled={busy}>{busy ? 'Uploading...' : 'Share'}</button>
-    </form>
+        {file && (
+          <div className="preview-container">
+            <img
+              className="preview"
+              src={URL.createObjectURL(file)}
+              alt="Selected preview"
+            />
+          </div>
+        )}
+
+        <textarea
+          placeholder="Write a caption..."
+          value={caption}
+          maxLength={2200}
+          onChange={(e) => setCaption(e.target.value)}
+        />
+
+        <div className="caption-count">
+          {caption.length}/2200
+        </div>
+
+        <button
+          type="submit"
+          disabled={busy}
+          className="share-btn"
+        >
+          {busy ? 'Uploading...' : 'Share'}
+        </button>
+      </form>
+    </main>
   );
 }

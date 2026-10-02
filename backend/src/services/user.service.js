@@ -24,7 +24,7 @@ export async function getProfile({ viewerId, targetId }) {
   return result.rows[0] || null;
 }
 
-export async function getUserPosts({ userId, limit, cursor }) {
+export async function getUserPosts({ targetId, limit, cursor }) {
   const result = await pool.query(
     `SELECT
         p.id,
@@ -42,7 +42,7 @@ export async function getUserPosts({ userId, limit, cursor }) {
        AND ($2::int IS NULL OR p.id < $2)
      ORDER BY p.id DESC
      LIMIT $3`,
-    [userId, cursor, limit + 1]
+    [targetId, cursor, limit + 1]
   );
 
   const hasMore = result.rows.length > limit;

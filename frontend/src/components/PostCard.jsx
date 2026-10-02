@@ -70,7 +70,7 @@ export default function PostCard({ post, onDelete }) {
             className="link-btn"
             onClick={handleDelete}
           >
-            delete
+            Delete
           </button>
         )}
       </header>
@@ -87,7 +87,7 @@ export default function PostCard({ post, onDelete }) {
             className="icon-btn"
             onClick={toggleLike}
           >
-            {liked ? '❤️' : '🤍'} {likeCount}
+            {liked ? '❤️' : '♡'} {likeCount}
           </button>
 
           <button

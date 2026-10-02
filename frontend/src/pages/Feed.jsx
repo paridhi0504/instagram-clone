@@ -58,6 +58,10 @@ export default function Feed() {
 
   return (
     <div className="container">
+      <div className="feed-header">
+        <h2>Home</h2>
+      </div>
+
       {error && <p className="error">{error}</p>}
 
       {posts.map((post) => (
@@ -73,12 +77,17 @@ export default function Feed() {
       ))}
 
       {!loading && posts.length === 0 && !error && (
-        <p className="center muted">
-          Nothing here yet. Upload a post or follow someone!
-        </p>
+        <div className="empty-state">
+          <h3>Your feed is empty</h3>
+          <p className="muted">
+            Follow users or create a new post to get started.
+          </p>
+        </div>
       )}
 
-      {loading && <p className="center">Loading...</p>}
+      {loading && (
+        <p className="center">Loading...</p>
+      )}
 
       {nextCursor && !loading && (
         <button

@@ -18,13 +18,23 @@ export default function Navbar() {
 
       {user && (
         <div className="nav-links">
-          <Link to="/">Feed</Link>
+          <Link to="/">Home</Link>
           <Link to="/search">Search</Link>
-          <Link to="/new">New Post</Link>
-          <Link to={`/profile/${user.id}`}>
+          <Link to="/new">+ Post</Link>
+
+          <Link
+            to={`/profile/${user.id}`}
+            className="nav-profile"
+          >
             {user.username}
           </Link>
-          <button onClick={handleLogout}>Logout</button>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </div>
       )}
     </nav>
