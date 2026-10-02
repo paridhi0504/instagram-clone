@@ -1,4 +1,5 @@
 import { pool } from '../config/db.js';
+import { invalidateFeed } from '../utils/cache.js';
 
 export const createPost = async ({ userId, mediaUrl, caption }) => {
     const result = await pool.query(
@@ -7,6 +8,8 @@ export const createPost = async ({ userId, mediaUrl, caption }) => {
          RETURNING *`,
         [userId, mediaUrl, caption]
     );
+
+    await invalidateFeed(userId);
 
     return result.rows[0];
 };
@@ -55,6 +58,10 @@ export const deletePost = async (postId, userId) => {
          RETURNING *`,
         [postId, userId]
     );
+
+    if (result.rowCount > 0) {
+        await invalidateFeed(userId);
+    }
 
     return result.rows[0];
 };

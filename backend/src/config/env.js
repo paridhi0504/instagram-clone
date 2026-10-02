@@ -9,6 +9,7 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 export const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+export const REDIS_URL = process.env.REDIS_URL;   // optional: no Redis = no caching
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is missing in your env file');

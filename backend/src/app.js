@@ -36,7 +36,7 @@ app.get('/health', async (req, res) => {
 });
 
 app.use(apiLimiter);
-app.use('/auth', authLimiter, authRoutes);
+app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/posts', postRoutes);
 app.use('/follow', followRoutes);

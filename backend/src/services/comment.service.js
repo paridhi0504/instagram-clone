@@ -1,4 +1,5 @@
 import { pool } from '../config/db.js';
+import { invalidateFeed } from '../utils/cache.js';
 
 export async function addComment({ userId, postId, text }) {
     const result = await pool.query(
@@ -9,6 +10,9 @@ export async function addComment({ userId, postId, text }) {
     );
 
     const comment = result.rows[0];
+
+    // Invalidate the user's cached feed after the comment is created
+    await invalidateFeed(userId);
 
     const userResult = await pool.query(
         `SELECT username
@@ -96,9 +100,13 @@ export async function deleteComment({ commentId, userId }) {
         throw error;
     }
 
-    await pool.query(
+    const deleteResult = await pool.query(
         `DELETE FROM comments
          WHERE id = $1`,
         [commentId]
     );
+
+    if (deleteResult.rowCount > 0) {
+        await invalidateFeed(userId);
+    }
 }

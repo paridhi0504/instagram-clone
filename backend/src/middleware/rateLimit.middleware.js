@@ -1,23 +1,43 @@
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
+import { redis } from '../config/redis.js';
 
 const skipInTests = () => process.env.NODE_ENV === 'test';
 
-// strict: protects login/register from password guessing
+const makeStore = (prefix) => {
+    if (!redis || redis.status !== 'ready') {
+        return undefined;
+    }
+
+    return new RedisStore({
+        prefix,
+        sendCommand: (...args) => redis.call(...args)
+    });
+};
+
+const common = {
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    skip: skipInTests,
+    passOnStoreError: true
+};
+
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 20,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  skip: skipInTests,
-  message: { error: 'Too many attempts, please try again in 15 minutes' },
+    ...common,
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    store: makeStore('rl:auth:'),
+    message: {
+        error: 'Too many attempts, please try again in 15 minutes'
+    }
 });
 
-// generous: a general safety net for the whole API
 export const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 300,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  skip: skipInTests,
-  message: { error: 'Too many requests, slow down' },
+    ...common,
+    windowMs: 60 * 1000,
+    limit: 300,
+    store: makeStore('rl:api:'),
+    message: {
+        error: 'Too many requests, slow down'
+    }
 });

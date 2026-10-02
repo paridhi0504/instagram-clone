@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import { HttpError } from '../utils/httpError.js';
+import { invalidateFeed } from '../utils/cache.js';
 
 async function assertPostExists(postId) {
   const r = await pool.query('SELECT 1 FROM posts WHERE id = $1', [postId]);
@@ -21,6 +22,7 @@ export async function likePost({ postId, userId }) {
      ON CONFLICT DO NOTHING`,
     [userId, postId]
   );
+  await invalidateFeed(userId);
   return { liked: true, like_count: await countLikes(postId) };
 }
 
@@ -30,5 +32,6 @@ export async function unlikePost({ postId, userId }) {
     'DELETE FROM likes WHERE user_id = $1 AND post_id = $2',
     [userId, postId]
   );
+  await invalidateFeed(userId);
   return { liked: false, like_count: await countLikes(postId) };
 }

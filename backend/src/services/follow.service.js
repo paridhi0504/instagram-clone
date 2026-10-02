@@ -1,5 +1,6 @@
 import { pool } from '../config/db.js';
 import { HttpError } from '../utils/httpError.js';
+import { invalidateFeed } from '../utils/cache.js';
 
 export async function followUser({ followerId, targetId }) {
   if (followerId === targetId) {
@@ -21,6 +22,8 @@ export async function followUser({ followerId, targetId }) {
      ON CONFLICT DO NOTHING`,
     [followerId, targetId]
   );
+
+  await invalidateFeed(followerId);
 }
 
 export async function unfollowUser({ followerId, targetId }) {
@@ -29,4 +32,6 @@ export async function unfollowUser({ followerId, targetId }) {
      WHERE follower_id = $1 AND following_id = $2`,
     [followerId, targetId]
   );
+
+  await invalidateFeed(followerId);
 }

@@ -1,67 +1,28 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { PORT } from './config/env.js';
+import { redis } from './config/redis.js';
 
-import authRoutes from './routes/auth.routes.js';
-import postRoutes from './routes/post.routes.js';
-import userRoutes from './routes/user.routes.js';
-import followRoutes from './routes/follow.routes.js';
-import feedRoutes from './routes/feed.routes.js';
-import commentRoutes from './routes/comment.routes.js';
+const waitForRedis = async () => {
+    if (!redis) {
+        return;
+    }
 
-const app = express();
+    const timeout = 3000;
+    const start = Date.now();
 
-// Security headers
-app.use(
-    helmet({
-        crossOriginResourcePolicy: {
-            policy: 'cross-origin'
-        }
-    })
-);
+    while (redis.status !== 'ready' && Date.now() - start < timeout) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
-app.use(
-    cors({
-        origin: 'http://localhost:5173'
-    })
-);
-app.use(express.json());
+    if (redis.status === 'ready') {
+        console.log('Redis connected');
+    } else {
+        console.log('Redis unavailable, starting without Redis rate limiting');
+    }
+};
 
-app.use('/uploads', express.static('uploads'));
+await waitForRedis();
 
-app.get('/', (req, res) => {
-    res.send('Instagram Clone Backend is running');
-});
-
-app.get('/health', (req, res) => {
-    res.json({ status: 'OK' });
-});
-
-app.use('/auth', authRoutes);
-app.use('/posts', postRoutes);
-app.use('/users', userRoutes);
-app.use('/follow', followRoutes);
-app.use('/feed', feedRoutes);
-app.use('/comments', commentRoutes);
-
-// JSON 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Route not found'
-    });
-});
-
-// JSON error handler
-app.use((err, req, res, next) => {
-    console.error(err);
-
-    const status = err.status || 500;
-
-    res.status(status).json({
-        error: err.message || 'Internal server error'
-    });
-});
+const { default: app } = await import('./app.js');
+const { PORT } = await import('./config/env.js');
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

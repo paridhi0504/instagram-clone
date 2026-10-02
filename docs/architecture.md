@@ -257,3 +257,47 @@ Tests use a separate test database. A test suite wipes tables, and you never wan
 6. 404s and a README
 
 The API returns JSON for unknown routes, and the frontend shows a "page not found" screen. A README is the first thing anyone (including a recruiter) reads.
+
+### Phase 8A: Docker and Redis
+
+Part A: The concepts
+1. Why Docker?
+
+Right now your setup is "install Postgres, Node and Redis on your Mac and hope they match everyone else's". Docker packages each program with everything it needs.
+
+Image: a frozen recipe or template (like a class).
+Container: a running instance of an image (like an object).
+Docker Compose: one YAML file describing all containers and how they connect. It's the first step towards the multi-server picture in your notes.
+2. Containers have their own network
+
+Inside a container, localhost means that container itself. So the backend can't reach Postgres at localhost:5432. Compose gives each service a hostname equal to its name, so the backend reaches the database at postgres:5432 and Redis at redis:6379. This trips up almost every beginner.
+
+3. Volumes
+
+Containers are disposable, and when one is deleted its data goes with it. A volume is storage that outlives the container. We use one for Postgres data and one for uploaded images.
+
+4. Caching with the cache-aside pattern
+
+The feed query joins tables and runs subqueries every time. Redis is an in-memory key-value store, much faster than Postgres for repeated reads.
+
+request → check Redis → HIT?  return it
+                      → MISS? query Postgres → store in Redis (with a TTL) → return
+TTL (time to live): the entry expires automatically after N seconds.
+Cache invalidation: when data changes, cached copies become wrong (stale). Deciding when to throw them away is famously hard.
+5. Our invalidation strategy: version keys
+
+Feeds are per-user (liked_by_me differs for each viewer), so each user has their own cache entry. To invalidate, we don't hunt for keys to delete. Each user has a version number, the cache key includes it, and bumping the number makes old entries unreachable (they expire by TTL):
+
+feed:7:v3:l5   →  after Alice likes something, version becomes 4  →  feed:7:v4:l5 (a fresh miss)
+
+Only the first page (no cursor) is cached, because that's what most requests hit.
+
+The trade-off you're accepting: if someone I follow posts, my cached feed doesn't know for up to 30 seconds. My own actions (like, follow, post) invalidate immediately. Real systems make the same freshness-for-speed trade.
+
+6. Shared state for multiple servers
+
+In Phase 7 I said the rate limiter's counter lives in server memory. Run 3 backend copies (Part 8B) and each keeps its own counter, so an attacker gets 3x the attempts. Moving counters into Redis gives all copies one shared count. This is why servers should be stateless: anything that must be shared lives outside the server process.
+
+7. Cache failure must not break the app
+
+A cache is an optimization. If Redis dies, the app should get slower, not go down. Every cache call is wrapped so errors fall through to the database.
