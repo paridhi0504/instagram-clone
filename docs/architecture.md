@@ -402,3 +402,26 @@ The bucket allows anonymous GET (anyone with the link can view photos, like publ
 
 7. Memory storage for uploads
 Multer will now hold the upload in memory (max 5 MB) and hand the bytes to our storage code, instead of writing to disk first.
+
+### Part 2: Search
+-> Concepts
+
+1. Two search problems
+
+Users by name: "find usernames containing ali".
+Hashtags: "all posts tagged #travel".
+
+2. Hashtags are a data-modelling problem, not a text-search problem
+Scanning every caption for #travel on each search would be slow. Instead, when a post is created we extract the tags once and store them in a join table, post_hashtags(post_id, tag). The same pattern appears everywhere: do the expensive work at write time so reads are cheap (just like fan-out on write in your notes). The table is itself a tiny search index.
+
+3. Transactions
+Creating a post now means two writes: the post row and its hashtag rows. If the second fails, you'd have a post that never shows up in tag searches. A transaction (BEGIN ... COMMIT) makes both succeed together or neither happen. That atomicity is the "A" in ACID.
+
+4. Why ILIKE '%ali%' is slow, and trigram indexes
+A normal B-tree index can't help when the pattern starts with %, because the database doesn't know where to jump. Postgres's pg_trgm extension splits text into 3-letter chunks (ali, lic, ice) and indexes those, so substring search can use an index. One line of SQL buys a lot.
+
+5. Escape user input in LIKE patterns
+In LIKE, % and _ are wildcards. If a user searches for %, they'd match every user. We escape them so they're literal. This is not SQL injection (we still use $1 parameters), but it's the same family of "user input must be treated as data".
+
+6. Debouncing and race conditions (frontend)
+Searching on every keystroke fires a request per letter. Debouncing waits until typing pauses (300 ms). Separately, responses can arrive out of order, so a slow reply for a could overwrite the fast reply for ali. We cancel stale results in the effect cleanup.
