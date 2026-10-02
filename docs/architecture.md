@@ -301,3 +301,45 @@ In Phase 7 I said the rate limiter's counter lives in server memory. Run 3 backe
 7. Cache failure must not break the app
 
 A cache is an optimization. If Redis dies, the app should get slower, not go down. Every cache call is wrapped so errors fall through to the database.
+
+### Phase 8B: Load Balancer with Nginx
+
+Your Redis work already did the hard part: the backend keeps no state of its own. Now we run 3 copies of it behind Nginx and watch requests spread across them.
+
+Goal: one address (localhost:4000) in front of 3 backend containers. You'll see traffic alternate between them and kill one while the app keeps working.
+
+Part A: The concepts
+1. Vertical vs horizontal scaling
+Vertical: buy a bigger machine. It's simple, but there's a ceiling, and it's one machine that can die.
+Horizontal: run many identical copies and split the traffic. This is what your notes mean by "Load Balancer" in front of the services.
+2. Reverse proxy and load balancer
+
+A reverse proxy receives requests on behalf of other servers and forwards them. When it forwards to several servers, it's a load balancer. Clients only ever see Nginx.
+
+Browser → Nginx (:4000) ─┬→ backend-1 ┐
+                         ├→ backend-2 ├→ Postgres, Redis (shared)
+                         └→ backend-3 ┘
+
+Nginx uses round robin by default: request 1 goes to backend-1, request 2 to backend-2, request 3 to backend-3, and so on.
+
+3. Why this works without code changes: statelessness
+
+Any request may land on any copy, so no copy can hold private state:
+
+State	Where it lives	Why it works
+Login	JWT, signed and carried by the client	Any copy can verify it
+Feed cache	Redis	Shared by all copies
+Rate-limit counters	Redis	One shared count (8A)
+Data	Postgres	Shared
+Images	A shared folder (for now)	This breaks on real multi-machine setups. Part 8C fixes it.
+
+This is why we moved things out of server memory before scaling.
+
+4. Failover
+
+If a copy dies, Nginx notices the failed connection, retries on another copy, and skips the dead one for a while. Users see no error.
+
+5. Things the proxy changes
+The client's IP: your backend now sees Nginx's IP for every request. Your rate limiter would treat all users as one person and lock everyone out together. Nginx passes the real IP in an X-Forwarded-For header, and Express must be told to trust it (trust proxy).
+Upload size: Nginx rejects request bodies over 1 MB by default (413), so your 5 MB image uploads would fail. We raise the limit.
+Nginx is now a single point of failure. Real systems run several load balancers too. We'll just note that.
