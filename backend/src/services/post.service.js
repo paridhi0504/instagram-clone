@@ -51,8 +51,8 @@ export const getPostById = async (postId, viewerId) => {
             posts.media_url,
             posts.caption,
             posts.created_at,
-            (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS like_count,
-            (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS comment_count,
+            (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id)::int AS like_count,
+            (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id)::int AS comment_count,
             EXISTS (
                 SELECT 1
                 FROM likes

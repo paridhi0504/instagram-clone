@@ -403,6 +403,7 @@ The bucket allows anonymous GET (anyone with the link can view photos, like publ
 7. Memory storage for uploads
 Multer will now hold the upload in memory (max 5 MB) and hand the bytes to our storage code, instead of writing to disk first.
 
+
 ### Part 2: Search
 -> Concepts
 

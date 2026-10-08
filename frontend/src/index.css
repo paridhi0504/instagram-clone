@@ -568,3 +568,11 @@ input:focus {
     flex-wrap: wrap;
   }
 }
+.post-image-link {
+  display: block;
+}
+
+.post-image-link img {
+  display: block;
+  width: 100%;
+}

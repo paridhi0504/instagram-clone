@@ -17,6 +17,9 @@ export const unfollowUser = (id) => request(`/follow/${id}`, { method: 'DELETE' 
 export const createPost = (formData) =>
   request('/posts', { method: 'POST', body: formData, isForm: true });
 
+export const getPost = (id) =>
+  request(`/posts/${id}`);
+
 export const likePost = (id) => request(`/posts/${id}/like`, { method: 'POST' });
 export const unlikePost = (id) => request(`/posts/${id}/like`, { method: 'DELETE' });
 

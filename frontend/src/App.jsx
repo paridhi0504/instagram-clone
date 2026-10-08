@@ -8,6 +8,7 @@ import Profile from './pages/Profile.jsx';
 import NewPost from './pages/NewPost.jsx';
 import Search from './pages/Search.jsx';
 import Hashtag from './pages/Hashtag.jsx';
+import PostDetail from './pages/PostDetail.jsx';
 import NotFound from './pages/NotFound.jsx';
 
 export default function App() {
@@ -60,6 +61,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Hashtag />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/post/:id"
+          element={
+            <ProtectedRoute>
+              <PostDetail />
             </ProtectedRoute>
           }
         />

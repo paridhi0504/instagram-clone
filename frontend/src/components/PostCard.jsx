@@ -75,10 +75,12 @@ export default function PostCard({ post, onDelete }) {
         )}
       </header>
 
-      <img
-        src={mediaUrl(post.media_url)}
-        alt={post.caption || 'post'}
-      />
+        <Link to={`/post/${post.id}`} className="post-image-link">
+  <img
+    src={mediaUrl(post.media_url)}
+    alt={post.caption || 'post'}
+  />
+</Link>
 
       <footer>
         <div className="actions">
