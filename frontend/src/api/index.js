@@ -41,3 +41,8 @@ export const getHashtagPosts = (tag, cursor) =>
             cursor ? `&cursor=${cursor}` : ''
         }`
     );
+export const updateProfile = (data) =>
+  request('/users/me', {
+    method: 'PATCH',
+    body: data,
+  });

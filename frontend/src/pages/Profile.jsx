@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth.js';
 import {
   getProfile,
@@ -12,6 +12,7 @@ import { mediaUrl } from '../api/client.js';
 export default function Profile() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
@@ -52,19 +53,19 @@ export default function Profile() {
       if (profile.is_following) {
         await unfollowUser(profile.id);
 
-        setProfile({
-          ...profile,
+        setProfile((prev) => ({
+          ...prev,
           is_following: false,
-          follower_count: profile.follower_count - 1,
-        });
+          follower_count: prev.follower_count - 1,
+        }));
       } else {
         await followUser(profile.id);
 
-        setProfile({
-          ...profile,
+        setProfile((prev) => ({
+          ...prev,
           is_following: true,
-          follower_count: profile.follower_count + 1,
-        });
+          follower_count: prev.follower_count + 1,
+        }));
       }
     } catch (err) {
       setError(err.message);
@@ -90,7 +91,7 @@ export default function Profile() {
     return <p className="center">Loading...</p>;
   }
 
-  const isMe = user.id === profile.id;
+  const isMe = String(user.id) === String(profile.id);
 
   return (
     <main className="container profile-page">
@@ -103,7 +104,14 @@ export default function Profile() {
           <div className="profile-title">
             <h2>{profile.username}</h2>
 
-            {!isMe && (
+            {isMe ? (
+              <button
+                className="follow-btn"
+                onClick={() => navigate('/edit-profile')}
+              >
+                Edit Profile
+              </button>
+            ) : (
               <button
                 className={
                   profile.is_following
@@ -116,6 +124,10 @@ export default function Profile() {
               </button>
             )}
           </div>
+
+          {profile.bio && (
+            <p className="profile-bio">{profile.bio}</p>
+          )}
 
           <div className="profile-stats">
             <span>
@@ -137,9 +149,7 @@ export default function Profile() {
         <h3>Posts</h3>
 
         {posts.length === 0 ? (
-          <p className="center muted">
-            No posts yet.
-          </p>
+          <p className="center muted">No posts yet.</p>
         ) : (
           <div className="grid">
             {posts.map((post) => (
@@ -154,10 +164,7 @@ export default function Profile() {
       </section>
 
       {nextCursor && (
-        <button
-          className="load-more"
-          onClick={loadMore}
-        >
+        <button className="load-more" onClick={loadMore}>
           Load more
         </button>
       )}
