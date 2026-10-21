@@ -89,16 +89,52 @@ describe('posts', () => {
     const b = await registerUser('bob');
     const postId = await addPost(a.user.id);
 
-    await request(app).delete(`/posts/${postId}`).set(authHeader(b.token)).expect(403);
-    await request(app).delete(`/posts/${postId}`).set(authHeader(a.token)).expect(204);
+    await request(app)
+      .delete(`/posts/${postId}`)
+      .set(authHeader(b.token))
+      .expect(403);
+
+    await request(app)
+      .delete(`/posts/${postId}`)
+      .set(authHeader(a.token))
+      .expect(204);
   });
 
   it('rejects non-image uploads', async () => {
     const a = await registerUser('alice');
+
     const res = await request(app)
       .post('/posts')
       .set(authHeader(a.token))
-      .attach('image', Buffer.from('hello'), { filename: 'a.txt', contentType: 'text/plain' });
+      .attach('image', Buffer.from('hello'), {
+        filename: 'a.txt',
+        contentType: 'text/plain'
+      });
+
     expect(res.status).toBe(400);
+  });
+
+  it('rejects creating a post without an image', async () => {
+    const a = await registerUser('alice');
+
+    await request(app)
+      .post('/posts')
+      .set(authHeader(a.token))
+      .field('caption', 'A post without an image')
+      .expect(400);
+  });
+
+  it('rejects captions longer than 2200 characters', async () => {
+    const a = await registerUser('alice');
+
+    await request(app)
+      .post('/posts')
+      .set(authHeader(a.token))
+      .field('caption', 'x'.repeat(2201))
+      .attach('image', Buffer.from('fake image data'), {
+        filename: 'test.png',
+        contentType: 'image/png'
+      })
+      .expect(400);
   });
 });
