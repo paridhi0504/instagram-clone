@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
-import { upload } from '../middleware/upload.middleware.js';
+import {
+    upload,
+    validateImageContent
+} from '../middleware/upload.middleware.js';
 
 import {
     createPost,
@@ -29,6 +32,7 @@ router.post(
     '/',
     requireAuth,
     upload.single('image'),
+    validateImageContent,
     validate(createPostSchema),
     createPost
 );

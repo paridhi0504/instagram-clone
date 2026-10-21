@@ -114,6 +114,20 @@ describe('posts', () => {
     expect(res.status).toBe(400);
   });
 
+  it('rejects files disguised as images', async () => {
+  const a = await registerUser('alice');
+
+  const res = await request(app)
+    .post('/posts')
+    .set(authHeader(a.token))
+    .attach('image', Buffer.from('this is not an image'), {
+      filename: 'fake.png',
+      contentType: 'image/png'
+    });
+
+  expect(res.status).toBe(400);
+});
+
   it('rejects creating a post without an image', async () => {
     const a = await registerUser('alice');
 

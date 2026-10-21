@@ -6,7 +6,7 @@ import { registerSchema, loginSchema } from '../validation/schemas.js';
 
 const router = Router();
 
-router.post('/register', validate(registerSchema), register);
+router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/login', authLimiter, validate(loginSchema), login);
 
 export default router;
