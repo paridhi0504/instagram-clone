@@ -57,3 +57,23 @@ export async function getUserPosts({ targetId, limit, cursor }) {
     nextCursor
   };
 }
+
+// Update the logged-in user's profile
+export async function updateProfile({
+  userId,
+  username,
+  bio,
+  profile_picture
+}) {
+  const result = await pool.query(
+    `UPDATE users
+     SET username = COALESCE($2, username),
+         bio = COALESCE($3, bio),
+         profile_picture = COALESCE($4, profile_picture)
+     WHERE id = $1
+     RETURNING id, username, email, bio, profile_picture, created_at`,
+    [userId, username ?? null, bio ?? null, profile_picture ?? null]
+  );
+
+  return result.rows[0] || null;
+}

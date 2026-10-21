@@ -35,3 +35,51 @@ export async function unfollowUser({ followerId, targetId }) {
 
   await invalidateFeed(followerId);
 }
+
+export async function getFollowers({ userId, limit = 20, cursor = null }) {
+  const result = await pool.query(
+    `SELECT
+        u.id,
+        u.username,
+        u.profile_picture
+     FROM followers f
+     JOIN users u ON u.id = f.follower_id
+     WHERE f.following_id = $1
+       AND ($2::int IS NULL OR u.id > $2)
+     ORDER BY u.id ASC
+     LIMIT $3`,
+    [userId, cursor, limit + 1]
+  );
+
+  const hasMore = result.rows.length > limit;
+  const users = hasMore ? result.rows.slice(0, limit) : result.rows;
+
+  return {
+    users,
+    nextCursor: hasMore ? users[users.length - 1].id : null,
+  };
+}
+
+export async function getFollowing({ userId, limit = 20, cursor = null }) {
+  const result = await pool.query(
+    `SELECT
+        u.id,
+        u.username,
+        u.profile_picture
+     FROM followers f
+     JOIN users u ON u.id = f.following_id
+     WHERE f.follower_id = $1
+       AND ($2::int IS NULL OR u.id > $2)
+     ORDER BY u.id ASC
+     LIMIT $3`,
+    [userId, cursor, limit + 1]
+  );
+
+  const hasMore = result.rows.length > limit;
+  const users = hasMore ? result.rows.slice(0, limit) : result.rows;
+
+  return {
+    users,
+    nextCursor: hasMore ? users[users.length - 1].id : null,
+  };
+}

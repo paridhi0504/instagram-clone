@@ -46,3 +46,8 @@ export const updateProfile = (data) =>
     method: 'PATCH',
     body: data,
   });
+export const getFollowers = (id, cursor) =>
+  request(`/follow/${id}/followers?limit=20${cursor ? `&cursor=${cursor}` : ''}`);
+
+export const getFollowing = (id, cursor) =>
+  request(`/follow/${id}/following?limit=20${cursor ? `&cursor=${cursor}` : ''}`);

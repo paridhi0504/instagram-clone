@@ -11,6 +11,7 @@ import Hashtag from './pages/Hashtag.jsx';
 import PostDetail from './pages/PostDetail.jsx';
 import NotFound from './pages/NotFound.jsx';
 import EditProfile from './pages/EditProfile.jsx';
+import FollowList from './pages/FollowList.jsx';
 
 export default function App() {
   return (
@@ -80,6 +81,24 @@ export default function App() {
   element={
     <ProtectedRoute>
       <EditProfile />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/profile/:id/followers"
+  element={
+    <ProtectedRoute>
+      <FollowList />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/profile/:id/following"
+  element={
+    <ProtectedRoute>
+      <FollowList />
     </ProtectedRoute>
   }
 />

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth.js';
 import {
   getProfile,
   getUserPosts,
   followUser,
-  unfollowUser
+  unfollowUser,
 } from '../api/index.js';
 import { mediaUrl } from '../api/client.js';
 
@@ -134,13 +134,13 @@ export default function Profile() {
               <strong>{profile.post_count}</strong> posts
             </span>
 
-            <span>
+            <Link to={`/profile/${profile.id}/followers`}>
               <strong>{profile.follower_count}</strong> followers
-            </span>
+            </Link>
 
-            <span>
+            <Link to={`/profile/${profile.id}/following`}>
               <strong>{profile.following_count}</strong> following
-            </span>
+            </Link>
           </div>
         </div>
       </section>
