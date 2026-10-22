@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 
 # Copy package files first: Docker caches this layer,
